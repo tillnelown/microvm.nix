@@ -20,7 +20,6 @@
       systems = [
         "x86_64-linux"
         "aarch64-linux"
-        "x86_64-darwin"
         "aarch64-darwin"
       ];
     in {
@@ -86,6 +85,7 @@
           inherit (pkgs) lib;
         in {
           build-microvm = pkgs.callPackage ./pkgs/build-microvm.nix { inherit self; };
+          inherit (pkgs) cloud-hypervisor-graphics;
           doc = pkgs.callPackage ./pkgs/doc.nix { };
           microvm = pkgs.callPackage ./pkgs/microvm-command.nix { };
           # all compilation-heavy packages that shall be prebuilt for a binary cache

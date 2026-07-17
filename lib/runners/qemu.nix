@@ -93,7 +93,6 @@ let
       in
       {
         x86_64-linux = x86MachineOpts;
-        x86_64-darwin = x86MachineOpts;
         aarch64-linux = {
           inherit accel;
           gic-version = "max";
@@ -246,6 +245,9 @@ lib.warnIf (mem == 2048) ''
            gtk = [
              "-display" "gtk,gl=on" "-device" "virtio-vga-gl"
            ];
+           headless = [
+             "-display" "egl-headless" "-device" "virtio-gpu-gl"
+           ];
          }.${graphics.backend};
        in
          displayArgs ++ [
@@ -269,7 +271,7 @@ lib.warnIf (mem == 2048) ''
     builtins.concatMap ({ image, letter, serial, direct, readOnly, ... }:
       [ "-drive"
         "id=vd${letter},format=raw,file=${image},if=none,aio=${aioEngine},discard=unmap${
-          lib.optionalString (direct != null) ",cache=none"
+          lib.optionalString direct ",cache=none"
         },read-only=${if readOnly then "on" else "off"}"
         "-device"
         "virtio-blk-${devType},drive=vd${letter}${
@@ -339,7 +341,14 @@ lib.warnIf (mem == 2048) ''
             (microvmConfig.cpu == null && system != "x86_64-linux")
           ) ",romfile="
         }${
-          lib.optionalString (tapMultiQueue && requirePci) ",mq=on,vectors=${toString (2 * vcpu + 2)}"
+          # mq=on needs a backend with matching queues:
+          # tap gets queues=N on the netdev above, macvtap opens one fd per queue.
+          # user (SLIRP) and bridge-helper netdevs are single-queue -- advertising VIRTIO_NET_F_MQ
+          # there makes the guest steer flows onto queues the backend never services,
+          # so inbound hostfwd connections stall.
+          lib.optionalString (
+            (type == "tap" || type == "macvtap") && tapMultiQueue && requirePci
+          ) ",mq=on,vectors=${toString (2 * vcpu + 2)}"
         }"
       ]) interfaces
     )

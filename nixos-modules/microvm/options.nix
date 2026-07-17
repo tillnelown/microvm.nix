@@ -584,10 +584,11 @@ in
         description = ''
           Enable GUI support.
 
-          MicroVMs with graphics are intended for the interactive
-          use-case. They cannot be started through systemd jobs.
-
-          The display backend is chosen by `microvm.graphics.backend`.
+          The graphics backend is chosen by `microvm.graphics.backend`.
+          The `gtk` and `cocoa` backends are intended for the interactive
+          use-case and cannot be started through systemd jobs.
+          The `headless` backend can be started through a systemd job
+          as it does not open a host window.
         '';
       };
 
@@ -599,7 +600,7 @@ in
       };
 
       backend = mkOption {
-        type = types.enum [ "gtk" "cocoa" ];
+        type = types.enum [ "gtk" "cocoa" "headless" ];
         default = if pkgs.stdenv.hostPlatform.isDarwin then "cocoa" else "gtk";
         defaultText = lib.literalExpression ''if pkgs.stdenv.hostPlatform.isDarwin then "cocoa" else "gtk"'';
         description = ''
@@ -1055,7 +1056,7 @@ in
 
   config = lib.mkMerge [ {
     microvm.qemu.machine =
-      lib.mkIf (lib.elem pkgs.stdenv.hostPlatform.system [ "x86_64-linux" "x86_64-darwin" ]) (
+      lib.mkIf (lib.elem pkgs.stdenv.hostPlatform.system [ "x86_64-linux" ]) (
         lib.mkDefault "microvm"
       );
   } {
