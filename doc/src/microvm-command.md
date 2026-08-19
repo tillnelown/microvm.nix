@@ -14,6 +14,12 @@ kept in `/var/lib/microvms/*/flake` for future updating the MicroVM.
 microvm -f git+https://... -c my-microvm
 ```
 
+If `-f` points to a local flake, the path must be absolute. `create`
+evaluates the flake from an internal temporary directory, so a
+relative path (including `.`) will not resolve against your shell's
+current working directory and the flake will not be found. Use
+`-f $(pwd)` or a full path instead, e.g. `-f /path/to/flake`.
+
 ### Enabling MicroVM autostart
 
 Extension of the host's systemd units must happen declaratively in the

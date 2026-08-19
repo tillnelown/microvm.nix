@@ -44,7 +44,6 @@ let
   volumes = withDriveLetters microvmConfig;
 
   requireUsb =
-    graphics.enable ||
     lib.any ({ bus, ... }: bus == "usb") microvmConfig.devices;
 
   arch = builtins.head (builtins.split "-" system);
@@ -238,15 +237,20 @@ lib.warnIf (mem == 2048) ''
     ] ++
        (if graphics.enable then (
        let
+         vulkanArgs = lib.optionals (graphics.vulkan != null) [
+          "blob=true"
+          "hostmem=${graphics.hostmem}"
+          "${graphics.vulkan}=on"
+         ];
          displayArgs = {
            cocoa = [
              "-display" "cocoa" "-device" "virtio-gpu"
            ];
            gtk = [
-             "-display" "gtk,gl=on" "-device" "virtio-vga-gl"
+             "-display" "gtk,gl=on" "-device" (lib.concatStringsSep "," ([ "virtio-vga-gl" ] ++ vulkanArgs))
            ];
            headless = [
-             "-display" "egl-headless" "-device" "virtio-gpu-gl"
+             "-display" "egl-headless" "-device" (lib.concatStringsSep "," ([ "virtio-gpu-gl" ] ++ vulkanArgs))
            ];
          }.${graphics.backend};
        in
@@ -262,7 +266,7 @@ lib.warnIf (mem == 2048) ''
     lib.optionals (user != null) [ "-run-with" "user=${user}" ] ++
     lib.optionals (socket != null) [ "-qmp" "unix:${socket},server,nowait" ] ++
     lib.optionals balloon [
-	    "-device" ("virtio-balloon,free-page-reporting=on,id=balloon0" + lib.optionalString (deflateOnOOM) ",deflate-on-oom=on")
+	    "-device" ("virtio-balloon-${devType},free-page-reporting=on,id=balloon0" + lib.optionalString (deflateOnOOM) ",deflate-on-oom=on")
     ] ++
     lib.optionals useHotPlugMemory [
       "-object" "memory-backend-memfd,id=vmem0,size=${toString hotplugMem}M,share=on"

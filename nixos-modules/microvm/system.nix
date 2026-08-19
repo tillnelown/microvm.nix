@@ -10,7 +10,6 @@
 
 
     boot.loader.grub.enable = false;
-    # boot.initrd.systemd.enable = lib.mkDefault true;
     boot.initrd.kernelModules = [
       "virtio_mmio"
       "virtio_pci"
@@ -26,6 +25,11 @@
       "i8042"
     ] ++ lib.optionals (config.microvm.writableStoreOverlay != null) [
       "overlay"
+    ];
+
+    boot.initrd.availableKernelModules = [
+      # Fix SSH over vsock when no virtio-PCI devices are available
+      "vmw_vsock_virtio_transport"
     ];
 
     microvm.kernelParams = let

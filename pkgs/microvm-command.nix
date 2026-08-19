@@ -103,6 +103,7 @@ writeShellScriptBin "microvm" ''
 
   Flags:
           -f <flake>  Create using another flake than $FLAKE
+                      (a local path must be absolute)
           -R          Restart after update
   EOF
       ;;

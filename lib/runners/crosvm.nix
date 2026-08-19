@@ -67,7 +67,11 @@ in {
         "-p" "console=ttyS0 reboot=k panic=1 ${toString microvmConfig.kernelParams}"
       ]
       ++
-      lib.optional (!balloon) "--no-balloon"
+      (
+        if balloon
+        then [ "--balloon-page-reporting" ]
+        else [ "--no-balloon" ]
+      )
       ++
       lib.optionals storeOnDisk [
         "-r" storeDisk
