@@ -274,18 +274,12 @@ lib.warnIf (mem == 2048) ''
     ] ++
     builtins.concatMap ({ image, letter, serial, direct, readOnly, ... }:
       [
-        "-object"
-        "iothread,id=iothread-${letter}"
-        "-device"
-        "virtio-scsi-${devType},id=scsi-${letter},iothread=iothread-${letter}${
-          lib.optionalString (devType == "pci") ",disable-legacy=on"
-        }"
         "-drive"
         "id=vd${letter},format=raw,file=${image},if=none,aio=${aioEngine},discard=unmap${
           lib.optionalString direct ",cache=none"
         },read-only=${if readOnly then "on" else "off"}"
         "-device"
-        "scsi-hd,drive=vd${letter},bus=scsi-${letter}.0${
+        "virtio-blk-${devType},drive=vd${letter}${
           lib.optionalString (serial != null) ",serial=${serial}"
         }"
       ]
