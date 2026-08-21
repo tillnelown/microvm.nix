@@ -277,11 +277,11 @@ lib.warnIf (mem == 2048) ''
         "-object"
         "iothread,id=iothread${letter}"
         "-drive"
-        "id=vd${letter},format=raw,file=${image},if=none,aio=${aioEngine},discard=unmap,iothread=iothread${letter},queue-size=1024,config-wce=false${
+        "id=vd${letter},format=raw,file=${image},if=none,aio=${aioEngine},discard=unmap${
           lib.optionalString direct ",cache=none"
         },read-only=${if readOnly then "on" else "off"}"
         "-device"
-        "virtio-blk-${devType},drive=vd${letter}${
+        "virtio-blk-${devType},drive=vd${letter},iothread=iothread${letter},queue-size=1024,config-wce=false${
           lib.optionalString (serial != null) ",serial=${serial}"
         }"
       ]
