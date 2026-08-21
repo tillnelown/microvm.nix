@@ -274,8 +274,10 @@ lib.warnIf (mem == 2048) ''
     ] ++
     builtins.concatMap ({ image, letter, serial, direct, readOnly, ... }:
       [
+        "-object"
+        "iothread,id=iothread${letter}"
         "-drive"
-        "id=vd${letter},format=raw,file=${image},if=none,aio=${aioEngine},discard=unmap${
+        "id=vd${letter},format=raw,file=${image},if=none,aio=${aioEngine},discard=unmap,iothread=iothread${letter},queue-size=1024,config-wce=false${
           lib.optionalString direct ",cache=none"
         },read-only=${if readOnly then "on" else "off"}"
         "-device"
